@@ -7,6 +7,76 @@
             http://www.liquibase.org/xml/ns/dbchangelog
             https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <includeAll path="changelog" relativeToChangelogFile="true" errorIfMissingOrEmpty="false"/>
+    <changeSet id="001-enable-pgvector" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM pg_extension WHERE extname = 'vector'
+            </sqlCheck>
+        </preConditions>
+        <sqlFile path="changelog/001-enable-pgvector.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="002-create-documents-table" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="documents"/>
+            </not>
+        </preConditions>
+        <sqlFile path="changelog/002-create-documents-table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="003-create-document-chunks-table" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="document_chunks"/>
+            </not>
+        </preConditions>
+        <sqlFile path="changelog/003-create-document-chunks-table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="004-create-question-answer-runs-table" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="question_answer_runs"/>
+            </not>
+        </preConditions>
+        <sqlFile path="changelog/004-create-question-answer-runs-table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="005-create-retrieved-chunks-table" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="retrieved_chunks"/>
+            </not>
+        </preConditions>
+        <sqlFile path="changelog/005-create-retrieved-chunks-table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
+    <changeSet id="006-create-rag-indexes" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_document_chunks_document_id"/>
+            </not>
+        </preConditions>
+        <sqlFile path="changelog/006-create-rag-indexes.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
 
 </databaseChangeLog>
