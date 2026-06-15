@@ -44,6 +44,9 @@ public class RagDocument {
     @Column(name = "extracted_text_length")
     private Integer extractedTextLength;
 
+    @Column(name = "extracted_text", columnDefinition = "TEXT")
+    private String extractedText;
+
     @Column(name = "failure_reason", columnDefinition = "TEXT")
     private String failureReason;
 
@@ -77,9 +80,10 @@ public class RagDocument {
         this.failureReason = null;
     }
 
-    public void markReady(int extractedTextLength) {
+    public void markReady(String extractedText) {
         this.status = DocumentStatus.READY;
-        this.extractedTextLength = extractedTextLength;
+        this.extractedText = extractedText;
+        this.extractedTextLength = extractedText == null ? 0 : extractedText.length();
         this.failureReason = null;
     }
 

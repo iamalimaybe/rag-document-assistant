@@ -79,4 +79,16 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="007-add-extracted-text-to-documents" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="documents" columnName="extracted_text"/>
+            </not>
+        </preConditions>
+        <sqlFile path="changelog/007-add-extracted-text-to-documents.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>
