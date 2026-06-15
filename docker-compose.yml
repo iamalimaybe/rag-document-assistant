@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: rag_document_assistant_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rag_document_assistant}
+      POSTGRES_USER: ${POSTGRES_USER:-rag_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rag_password}
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - rag_document_assistant_pgdata:/var/lib/postgresql/data
+
+volumes:
+  rag_document_assistant_pgdata:
