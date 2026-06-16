@@ -6,6 +6,7 @@ import com.aliniaz.ragdocumentassistant.document.config.TokenEstimationPropertie
 import com.aliniaz.ragdocumentassistant.embedding.config.EmbeddingProperties;
 import com.aliniaz.ragdocumentassistant.common.config.OllamaProperties;
 import com.aliniaz.ragdocumentassistant.llm.config.LlmProperties;
+import com.aliniaz.ragdocumentassistant.rag.config.RagContextBudgetProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,7 +18,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
         LlmProperties.class,
         ChunkingProperties.class,
         TokenEstimationProperties.class,
-        DocumentNormalizationProperties.class
+        DocumentNormalizationProperties.class,
+        RagContextBudgetProperties.class
 })
 public class RagDocumentAssistantApplication {
 

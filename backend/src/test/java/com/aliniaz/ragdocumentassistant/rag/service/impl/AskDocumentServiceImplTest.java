@@ -19,6 +19,7 @@ import com.aliniaz.ragdocumentassistant.rag.repository.RetrievedChunkRepository;
 import com.aliniaz.ragdocumentassistant.rag.service.GroundedAnswerModelOutput;
 import com.aliniaz.ragdocumentassistant.rag.service.GroundedAnswerModelOutputParser;
 import com.aliniaz.ragdocumentassistant.rag.service.GroundedAnswerPromptBuilder;
+import com.aliniaz.ragdocumentassistant.rag.service.RetrievedContextBudgetSelector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,7 @@ class AskDocumentServiceImplTest {
     private QuestionAnswerRunRepository questionAnswerRunRepository;
     private RetrievedChunkRepository retrievedChunkRepository;
     private GroundedAnswerModelOutputParser groundedAnswerModelOutputParser;
+    private RetrievedContextBudgetSelector retrievedContextBudgetSelector;
     private AskDocumentServiceImpl service;
 
     @BeforeEach
@@ -52,6 +54,7 @@ class AskDocumentServiceImplTest {
         questionAnswerRunRepository = mock(QuestionAnswerRunRepository.class);
         retrievedChunkRepository = mock(RetrievedChunkRepository.class);
         groundedAnswerModelOutputParser = mock(GroundedAnswerModelOutputParser.class);
+        retrievedContextBudgetSelector = mock(RetrievedContextBudgetSelector.class);
 
         service = new AskDocumentServiceImpl(
                 embeddingClient,
@@ -63,7 +66,8 @@ class AskDocumentServiceImplTest {
                 groundedAnswerPromptBuilder,
                 questionAnswerRunRepository,
                 retrievedChunkRepository,
-                groundedAnswerModelOutputParser
+                groundedAnswerModelOutputParser,
+                retrievedContextBudgetSelector
         );
 
         when(embeddingClient.embed(any())).thenReturn(List.of(0.1, 0.2, 0.3));
@@ -89,6 +93,7 @@ class AskDocumentServiceImplTest {
         });
 
         when(retrievedChunkRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(retrievedContextBudgetSelector.selectForPrompt(any())).thenReturn(List.of(retrievedChunks().get(0)));
     }
 
     @Test
@@ -244,5 +249,38 @@ class AskDocumentServiceImplTest {
                         0.84
                 )
         );
+    }
+
+    @Test
+    void askUsesBudgetSelectedChunksForPromptAndParserButReturnsAllRetrievedChunks() {
+        when(groundedAnswerModelOutputParser.parse(any(), any())).thenReturn(
+                new GroundedAnswerModelOutput(
+                        AnswerStatus.ANSWERED,
+                        "RAG systems should answer using retrieved document context.",
+                        List.of(10L)
+                )
+        );
+
+        AskDocumentResponse response = service.ask(
+                1L,
+                new AskDocumentRequest("What should RAG systems use to answer questions?", 5)
+        );
+
+        ArgumentCaptor<List<SimilarDocumentChunk>> promptChunksCaptor = ArgumentCaptor.forClass(List.class);
+
+        verify(groundedAnswerPromptBuilder).buildPrompt(
+                eq("What should RAG systems use to answer questions?"),
+                promptChunksCaptor.capture()
+        );
+
+        List<SimilarDocumentChunk> promptChunks = promptChunksCaptor.getValue();
+
+        assertEquals(1, promptChunks.size());
+        assertEquals(10L, promptChunks.get(0).chunkId());
+
+        verify(groundedAnswerModelOutputParser).parse(any(), eq(promptChunks));
+
+        assertEquals(1, response.citations().size());
+        assertEquals(2, response.retrievedChunks().size());
     }
 }

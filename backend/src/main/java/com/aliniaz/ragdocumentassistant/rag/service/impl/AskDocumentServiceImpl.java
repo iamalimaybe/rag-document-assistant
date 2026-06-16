@@ -17,10 +17,7 @@ import com.aliniaz.ragdocumentassistant.rag.domain.QuestionAnswerRun;
 import com.aliniaz.ragdocumentassistant.rag.domain.RetrievedChunk;
 import com.aliniaz.ragdocumentassistant.rag.repository.QuestionAnswerRunRepository;
 import com.aliniaz.ragdocumentassistant.rag.repository.RetrievedChunkRepository;
-import com.aliniaz.ragdocumentassistant.rag.service.AskDocumentService;
-import com.aliniaz.ragdocumentassistant.rag.service.GroundedAnswerModelOutput;
-import com.aliniaz.ragdocumentassistant.rag.service.GroundedAnswerModelOutputParser;
-import com.aliniaz.ragdocumentassistant.rag.service.GroundedAnswerPromptBuilder;
+import com.aliniaz.ragdocumentassistant.rag.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +42,7 @@ public class AskDocumentServiceImpl implements AskDocumentService {
     private final QuestionAnswerRunRepository questionAnswerRunRepository;
     private final RetrievedChunkRepository retrievedChunkRepository;
     private final GroundedAnswerModelOutputParser groundedAnswerModelOutputParser;
+    private final RetrievedContextBudgetSelector retrievedContextBudgetSelector;
 
     @Override
     @Transactional
@@ -60,7 +58,9 @@ public class AskDocumentServiceImpl implements AskDocumentService {
                 topK
         );
 
-        String prompt = groundedAnswerPromptBuilder.buildPrompt(request.question(), chunks);
+        List<SimilarDocumentChunk> promptChunks = retrievedContextBudgetSelector.selectForPrompt(chunks);
+
+        String prompt = groundedAnswerPromptBuilder.buildPrompt(request.question(), promptChunks);
 
         QuestionAnswerRun qaRun = new QuestionAnswerRun(
                 documentId,
@@ -81,7 +81,7 @@ public class AskDocumentServiceImpl implements AskDocumentService {
             LlmGenerationResponse generation = llmClient.generate(new LlmGenerationRequest(prompt));
             rawModelOutput = generation.rawOutput();
 
-            modelOutput = groundedAnswerModelOutputParser.parse(rawModelOutput, chunks);
+            modelOutput = groundedAnswerModelOutputParser.parse(rawModelOutput, promptChunks);
 
             if (modelOutput.answerStatus() == AnswerStatus.INSUFFICIENT_CONTEXT) {
                 qaRun.markInsufficientContext(modelOutput.answer(), rawModelOutput);
@@ -101,7 +101,7 @@ public class AskDocumentServiceImpl implements AskDocumentService {
         List<RetrievedChunkResponse> citationResponses = buildCitationResponses(
                 savedRun,
                 modelOutput,
-                chunks
+                promptChunks
         );
 
         return new AskDocumentResponse(
