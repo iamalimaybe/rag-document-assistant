@@ -5,8 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "rag.chunking")
 public record ChunkingProperties(
         int chunkSizeChars,
-        int chunkOverlapChars,
-        int approxCharsPerToken
+        int chunkOverlapChars
 ) {
 
     public ChunkingProperties {
@@ -20,10 +19,6 @@ public record ChunkingProperties(
 
         if (chunkOverlapChars >= chunkSizeChars) {
             throw new IllegalArgumentException("chunkOverlapChars must be smaller than chunkSizeChars");
-        }
-
-        if (approxCharsPerToken < 1) {
-            throw new IllegalArgumentException("approxCharsPerToken must be greater than 0");
         }
     }
 }

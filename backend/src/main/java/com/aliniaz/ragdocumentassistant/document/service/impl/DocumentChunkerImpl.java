@@ -4,6 +4,7 @@ import com.aliniaz.ragdocumentassistant.document.config.ChunkingProperties;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunkData;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunker;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentTextNormalizer;
+import com.aliniaz.ragdocumentassistant.document.service.TokenEstimator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ public class DocumentChunkerImpl implements DocumentChunker {
 
     private final DocumentTextNormalizer documentTextNormalizer;
     private final ChunkingProperties chunkingProperties;
+    private final TokenEstimator tokenEstimator;
 
     @Override
     public List<DocumentChunkData> chunk(String text) {
@@ -43,7 +45,7 @@ public class DocumentChunkerImpl implements DocumentChunker {
                         null,
                         chunkContent,
                         sha256(chunkIndex + ":" + chunkContent),
-                        estimateTokens(chunkContent)
+                        tokenEstimator.estimate(chunkContent)
                 ));
                 chunkIndex++;
             }
@@ -56,13 +58,6 @@ public class DocumentChunkerImpl implements DocumentChunker {
         }
 
         return chunks;
-    }
-
-    private Integer estimateTokens(String content) {
-        return Math.max(
-                1,
-                (int) Math.ceil((double) content.length() / chunkingProperties.approxCharsPerToken())
-        );
     }
 
     private String sha256(String content) {

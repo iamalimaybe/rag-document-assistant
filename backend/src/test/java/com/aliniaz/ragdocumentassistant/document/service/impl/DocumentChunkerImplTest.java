@@ -12,7 +12,8 @@ class DocumentChunkerImplTest {
 
     private final DocumentChunkerImpl chunker = new DocumentChunkerImpl(
             text -> text == null ? "" : text.trim(),
-            new ChunkingProperties(1200, 200, 4)
+            new ChunkingProperties(1200, 200),
+            content -> Math.max(1, (int) Math.ceil((double) content.length() / 4))
     );
 
     @Test
@@ -96,7 +97,8 @@ class DocumentChunkerImplTest {
     void chunkUsesConfiguredSizeOverlapAndTokenEstimate() {
         DocumentChunkerImpl configuredChunker = new DocumentChunkerImpl(
                 text -> text == null ? "" : text.trim(),
-                new ChunkingProperties(10, 2, 5)
+                new ChunkingProperties(10, 2),
+                content -> Math.max(1, (int) Math.ceil((double) content.length() / 5))
         );
 
         List<DocumentChunkData> chunks = configuredChunker.chunk("abcdefghijklmnopqrst");
@@ -116,7 +118,7 @@ class DocumentChunkerImplTest {
     void chunkingPropertiesRejectOverlapEqualToChunkSize() {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new ChunkingProperties(10, 10, 4)
+                () -> new ChunkingProperties(10, 10)
         );
 
         assertEquals("chunkOverlapChars must be smaller than chunkSizeChars", exception.getMessage());
