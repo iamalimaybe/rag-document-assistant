@@ -7,10 +7,11 @@ This project is not a toy "chat with PDF" demo. It focuses on the backend workfl
 * document upload
 * text extraction
 * conservative normalization
-* deterministic chunking
+* configurable document chunking
 * local embedding generation
 * pgvector storage
 * similarity retrieval
+* retrieval context budgeting
 * grounded prompt construction
 * structured model output parsing
 * citation validation
@@ -31,6 +32,7 @@ This project focuses on the reliability layer around RAG:
 * answers must cite retrieved chunks when answered
 * insufficient context is handled explicitly
 * raw prompts and raw model output are stored for audit
+* prompt context is budgeted before model generation
 
 ## Core idea
 
@@ -69,6 +71,7 @@ Infrastructure:
 
 * Docker Compose
 * PostgreSQL with pgvector
+* GitHub Actions backend CI
 
 Optional frontend folder exists, but a frontend is not implemented yet.
 
@@ -108,6 +111,7 @@ upload document
   -> store vectors in pgvector
   -> embed question
   -> retrieve similar chunks
+  -> select retrieved chunks within context budget
   -> build grounded prompt
   -> call local LLM
   -> parse structured JSON model output
@@ -115,6 +119,32 @@ upload document
   -> store QA run
   -> store retrieved chunk snapshots
   -> return answer, citations, and retrieved chunks
+```
+
+## Configurable backend behavior
+
+Current configurable backend behavior includes:
+
+* deterministic character-based chunking
+* optional structure-aware chunking
+* configurable chunk size and overlap
+* approximate token estimator abstraction
+* configurable light normalization
+* retrieval context token budgeting before prompt construction
+
+## Chunking strategies
+
+Supported chunking strategies:
+
+* `DETERMINISTIC`: predictable character-based chunking with overlap
+* `STRUCTURE_AWARE`: preserves paragraph or block boundaries where possible, then falls back to character splitting for oversized blocks
+
+`STRUCTURE_AWARE` is not semantic chunking. It does not use embeddings or an LLM to decide split points.
+
+The default strategy is:
+
+```text
+DETERMINISTIC
 ```
 
 ## Implemented API endpoints
@@ -202,15 +232,27 @@ spring.datasource.password=${POSTGRES_PASSWORD:rag_password}
 
 rag.ollama.base-url=${OLLAMA_BASE_URL:http://localhost:11434}
 rag.embedding.model=${RAG_EMBEDDING_MODEL:nomic-embed-text}
+
 rag.llm.model=${RAG_LLM_MODEL:qwen3:4b}
 rag.llm.temperature=${RAG_LLM_TEMPERATURE:0}
 rag.llm.num-predict=${RAG_LLM_NUM_PREDICT:256}
 rag.llm.context-window=${RAG_LLM_CONTEXT_WINDOW:4096}
+
+rag.chunking.strategy=${RAG_CHUNKING_STRATEGY:DETERMINISTIC}
+rag.chunking.chunk-size-chars=${RAG_CHUNK_SIZE_CHARS:1200}
+rag.chunking.chunk-overlap-chars=${RAG_CHUNK_OVERLAP_CHARS:200}
+
+rag.token-estimation.approx-chars-per-token=${RAG_APPROX_CHARS_PER_TOKEN:4}
+
+rag.normalization.collapse-spaces-and-tabs=${RAG_NORMALIZATION_COLLAPSE_SPACES_AND_TABS:true}
+rag.normalization.max-consecutive-blank-lines=${RAG_NORMALIZATION_MAX_CONSECUTIVE_BLANK_LINES:1}
+
+rag.context-budget.max-prompt-chunk-tokens=${RAG_CONTEXT_BUDGET_MAX_PROMPT_CHUNK_TOKENS:2400}
 ```
 
 The `.env` file is ignored. Use `.env.example` as the committed reference file.
 
-## Smoke test
+## Default smoke test
 
 A sample document is included at:
 
@@ -253,6 +295,63 @@ Missing-info question:
 answerStatus = INSUFFICIENT_CONTEXT
 citations = []
 retrievedChunks may still contain closest candidate chunks
+```
+
+## Structure-aware chunking smoke test
+
+A structure-aware sample document is included at:
+
+```text
+samples/structure-aware-rag-policy.txt
+```
+
+The structure-aware smoke script is included at:
+
+```text
+scratch/smoke-structure-aware-chunking.ps1
+```
+
+This smoke test is intended to be run with:
+
+```text
+RAG_CHUNKING_STRATEGY=STRUCTURE_AWARE
+RAG_CHUNK_SIZE_CHARS=300
+RAG_CHUNK_OVERLAP_CHARS=50
+```
+
+Start the backend with:
+
+```powershell
+cd backend
+
+$env:RAG_CHUNKING_STRATEGY="STRUCTURE_AWARE"
+$env:RAG_CHUNK_SIZE_CHARS="300"
+$env:RAG_CHUNK_OVERLAP_CHARS="50"
+
+.\mvnw spring-boot:run
+```
+
+Then run the smoke script from the repository root:
+
+```powershell
+.\scratch\smoke-structure-aware-chunking.ps1
+```
+
+This smoke test demonstrates:
+
+* paragraph/block-aware chunk grouping
+* embedding generation for multiple chunks
+* retrieval
+* grounded answering
+* citations
+* retrieved chunk output
+
+After stopping the backend, clear the temporary environment variables:
+
+```powershell
+Remove-Item Env:RAG_CHUNKING_STRATEGY
+Remove-Item Env:RAG_CHUNK_SIZE_CHARS
+Remove-Item Env:RAG_CHUNK_OVERLAP_CHARS
 ```
 
 ## Example answerable question
@@ -317,9 +416,25 @@ Validation rules include:
 * `citations` is required
 * model output must not return `FAILED`
 * `ANSWERED` must include at least one citation
-* cited chunk IDs must be among retrieved chunks
+* cited chunk IDs must be among chunks included in the prompt
 * `INSUFFICIENT_CONTEXT` may have empty citations
 * raw model output is stored for audit
+
+## Context budgeting
+
+The backend applies retrieval context token budgeting before prompt construction.
+
+The system can retrieve several candidate chunks, but only budget-selected chunks are sent to the LLM prompt. The response still returns all retrieved chunks so the retrieval evidence remains visible.
+
+This keeps the difference clear:
+
+```text
+retrievedChunks = all chunks returned by vector search
+prompt chunks = budget-selected chunks sent to the LLM
+citations = chunks cited by the model from the prompt context
+```
+
+This helps avoid oversized prompts when `topK` is high or chunks are large.
 
 ## Error handling
 
@@ -341,18 +456,30 @@ cd backend
 
 Current focused test coverage includes:
 
-* light document text normalization
+* configurable light document text normalization
 * deterministic document chunking
+* configurable document chunker strategy selection
+* structure-aware document chunking
+* approximate token estimation
 * pgvector formatting
+* retrieval context token budgeting
 * grounded prompt building
 * grounded answer model output parsing and citation validation
 * ask-document service orchestration
 
 These tests are meant to protect the backend reliability layer, not just increase coverage numbers.
 
+## CI
+
+The repository includes a backend GitHub Actions workflow that runs tests against PostgreSQL with pgvector.
+
+The CI workflow validates backend tests, Liquibase/JPA startup behavior, and PostgreSQL/pgvector compatibility for the tested paths.
+
+It does not run live Ollama model execution. Live embedding and LLM behavior are verified locally through smoke scripts.
+
 ## Current limitations
 
-This project intentionally keeps the first version focused.
+This project intentionally keeps the current version focused.
 
 Not implemented yet:
 
@@ -363,19 +490,16 @@ Not implemented yet:
 * advanced PDF layout preservation
 * production deployment
 * authentication or multi-user access
-* CI pipeline
 * evaluation integration with the LLM Evaluation Registry
 
 ## Future improvements
 
 Possible next improvements:
 
-* add a thin React UI for upload, embedding, asking questions, citations, and debug panels
-* add CI after the backend test suite stabilizes
+* add a thin React UI for upload, embedding, asking questions, citations, retrieved chunks, and debug panels
 * add README screenshots after UI or Swagger examples are ready
-* add a conservative configurable normalizer
 * add a model-aware token estimator
-* add semantic chunking as an alternative chunker
+* add semantic chunking later if it gives measurable retrieval value beyond deterministic and structure-aware chunking
 * review whether full extracted text should be retained once chunk snapshots, retrieved evidence, and UI/debug tooling are mature
 * integrate QA behavior evaluation with the LLM Evaluation Registry
 
@@ -383,4 +507,4 @@ Possible next improvements:
 
 This project demonstrates backend-led AI engineering around RAG.
 
-It shows how to build a document QA system where AI output is not blindly trusted. The backend stores evidence, validates structured model output, separates retrieval from citations, handles missing information honestly, and keeps QA runs auditable.
+It shows how to build a document QA system where AI output is not blindly trusted. The backend stores evidence, validates structured model output, separates retrieval from citations, handles missing information honestly, manages prompt context budget, and keeps QA runs auditable.
