@@ -2,11 +2,10 @@ package com.aliniaz.ragdocumentassistant.document.service.impl;
 
 import com.aliniaz.ragdocumentassistant.document.config.ChunkingProperties;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunkData;
-import com.aliniaz.ragdocumentassistant.document.service.DocumentChunker;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentTextNormalizer;
 import com.aliniaz.ragdocumentassistant.document.service.TokenEstimator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -15,15 +14,14 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class DeterministicDocumentChunker implements DocumentChunker {
+public class DeterministicDocumentChunker {
 
     private final DocumentTextNormalizer documentTextNormalizer;
     private final ChunkingProperties chunkingProperties;
     private final TokenEstimator tokenEstimator;
 
-    @Override
     public List<DocumentChunkData> chunk(String text) {
         String normalized = documentTextNormalizer.normalize(text);
 

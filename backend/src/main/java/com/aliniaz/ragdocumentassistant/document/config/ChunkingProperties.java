@@ -4,11 +4,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "rag.chunking")
 public record ChunkingProperties(
+        DocumentChunkingStrategy strategy,
         int chunkSizeChars,
         int chunkOverlapChars
 ) {
 
     public ChunkingProperties {
+        if (strategy == null) {
+            throw new IllegalArgumentException("chunking strategy is required");
+        }
+
         if (chunkSizeChars < 1) {
             throw new IllegalArgumentException("chunkSizeChars must be greater than 0");
         }

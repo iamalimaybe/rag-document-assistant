@@ -1,6 +1,7 @@
 package com.aliniaz.ragdocumentassistant.document.service.impl;
 
 import com.aliniaz.ragdocumentassistant.document.config.ChunkingProperties;
+import com.aliniaz.ragdocumentassistant.document.config.DocumentChunkingStrategy;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunkData;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ class DeterministicDocumentChunkerTest {
 
     private final DeterministicDocumentChunker chunker = new DeterministicDocumentChunker(
             text -> text == null ? "" : text.trim(),
-            new ChunkingProperties(1200, 200),
+            new ChunkingProperties(DocumentChunkingStrategy.DETERMINISTIC, 1200, 200),
             content -> Math.max(1, (int) Math.ceil((double) content.length() / 4))
     );
 
@@ -97,7 +98,7 @@ class DeterministicDocumentChunkerTest {
     void chunkUsesConfiguredSizeOverlapAndTokenEstimate() {
         DeterministicDocumentChunker configuredChunker = new DeterministicDocumentChunker(
                 text -> text == null ? "" : text.trim(),
-                new ChunkingProperties(10, 2),
+                new ChunkingProperties(DocumentChunkingStrategy.DETERMINISTIC, 10, 2),
                 content -> Math.max(1, (int) Math.ceil((double) content.length() / 5))
         );
 
@@ -118,7 +119,7 @@ class DeterministicDocumentChunkerTest {
     void chunkingPropertiesRejectOverlapEqualToChunkSize() {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> new ChunkingProperties(10, 10)
+                () -> new ChunkingProperties(DocumentChunkingStrategy.DETERMINISTIC, 10, 10)
         );
 
         assertEquals("chunkOverlapChars must be smaller than chunkSizeChars", exception.getMessage());
