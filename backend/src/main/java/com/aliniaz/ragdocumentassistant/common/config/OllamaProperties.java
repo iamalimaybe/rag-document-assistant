@@ -1,4 +1,4 @@
-package com.aliniaz.ragdocumentassistant.embedding.config;
+package com.aliniaz.ragdocumentassistant.common.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -1,7 +1,7 @@
 package com.aliniaz.ragdocumentassistant.embedding.service.impl;
 
 import com.aliniaz.ragdocumentassistant.embedding.config.EmbeddingProperties;
-import com.aliniaz.ragdocumentassistant.embedding.config.OllamaProperties;
+import com.aliniaz.ragdocumentassistant.common.config.OllamaProperties;
 import com.aliniaz.ragdocumentassistant.embedding.service.EmbeddingClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

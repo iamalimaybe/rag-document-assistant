@@ -108,7 +108,12 @@ public class QuestionAnswerRun {
     }
 
     public void markFailed(String failureReason) {
+        markFailed(failureReason, null);
+    }
+
+    public void markFailed(String failureReason, String rawModelOutput) {
         this.answerStatus = AnswerStatus.FAILED;
         this.failureReason = failureReason;
+        this.rawModelOutput = rawModelOutput;
     }
 }
