@@ -1,0 +1,17 @@
+RAG Operations Guide
+
+Document ingestion should preserve meaningful section boundaries when possible.
+
+Chunking strategy matters because retrieval quality depends on the shape of stored chunks.
+
+A deterministic character-based chunker is useful as a baseline because it is predictable and easy to test.
+
+A structure-aware chunker should prefer paragraph or block boundaries before falling back to character splitting for oversized blocks.
+
+Retrieved chunks are candidate evidence returned by vector search.
+
+Citations are the specific chunks the model used to support an answer.
+
+A QA run should store the user question, generated answer, answer status, raw prompt, raw model output, and retrieved chunk snapshots.
+
+If the document context does not contain the answer, the assistant should return insufficient context instead of guessing.
