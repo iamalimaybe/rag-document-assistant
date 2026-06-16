@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.document.service.impl;
 
+import com.aliniaz.ragdocumentassistant.common.exception.ResourceNotFoundException;
 import com.aliniaz.ragdocumentassistant.document.domain.DocumentStatus;
 import com.aliniaz.ragdocumentassistant.document.domain.RagDocument;
 import com.aliniaz.ragdocumentassistant.document.repository.DocumentChunkSearchStore;
@@ -25,7 +26,7 @@ public class DocumentChunkSearchServiceImpl implements DocumentChunkSearchServic
         validateTopK(topK);
 
         RagDocument document = ragDocumentRepository.findById(documentId)
-                .orElseThrow(() -> new IllegalArgumentException("Document not found: " + documentId));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + documentId));
 
         if (document.getStatus() != DocumentStatus.READY) {
             throw new IllegalStateException("Document must be READY before retrieval. Current status: " + document.getStatus());

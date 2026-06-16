@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.rag.service.impl;
 
+import com.aliniaz.ragdocumentassistant.common.exception.ResourceNotFoundException;
 import com.aliniaz.ragdocumentassistant.rag.api.response.QuestionAnswerRunDetailResponse;
 import com.aliniaz.ragdocumentassistant.rag.api.response.QuestionAnswerRunSummaryResponse;
 import com.aliniaz.ragdocumentassistant.rag.api.response.RetrievedChunkSnapshotResponse;
@@ -24,7 +25,7 @@ public class QuestionAnswerRunQueryServiceImpl implements QuestionAnswerRunQuery
     @Transactional(readOnly = true)
     public QuestionAnswerRunDetailResponse findById(Long id) {
         QuestionAnswerRun run = questionAnswerRunRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Question answer run not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Question answer run not found: " + id));
 
         List<RetrievedChunkSnapshotResponse> retrievedChunks = retrievedChunkRepository.findByQaRunIdOrderByRankAsc(id)
                 .stream()

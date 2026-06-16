@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.document.service.impl;
 
+import com.aliniaz.ragdocumentassistant.common.exception.ResourceNotFoundException;
 import com.aliniaz.ragdocumentassistant.document.api.response.DocumentChunkResponse;
 import com.aliniaz.ragdocumentassistant.document.api.response.DocumentResponse;
 import com.aliniaz.ragdocumentassistant.document.domain.DocumentChunk;
@@ -74,14 +75,14 @@ public class DocumentServiceImpl implements DocumentService {
     public DocumentResponse findById(Long id) {
         return ragDocumentRepository.findById(id)
                 .map(DocumentResponse::from)
-                .orElseThrow(() -> new IllegalArgumentException("Document not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found: " + id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<DocumentChunkResponse> findChunksByDocumentId(Long documentId) {
         if (!ragDocumentRepository.existsById(documentId)) {
-            throw new IllegalArgumentException("Document not found: " + documentId);
+            throw new ResourceNotFoundException("Document not found: " + documentId);
         }
 
         return documentChunkRepository.findByDocumentIdOrderByChunkIndexAsc(documentId)
