@@ -15,13 +15,13 @@ public class ConfigurableDocumentChunker implements DocumentChunker {
 
     private final ChunkingProperties chunkingProperties;
     private final DeterministicDocumentChunker deterministicDocumentChunker;
+    private final StructureAwareDocumentChunker structureAwareDocumentChunker;
 
     @Override
     public List<DocumentChunkData> chunk(String text) {
-        if (chunkingProperties.strategy() == DocumentChunkingStrategy.DETERMINISTIC) {
-            return deterministicDocumentChunker.chunk(text);
-        }
-
-        throw new IllegalStateException("Unsupported chunking strategy: " + chunkingProperties.strategy());
+        return switch (chunkingProperties.strategy()) {
+            case DETERMINISTIC -> deterministicDocumentChunker.chunk(text);
+            case STRUCTURE_AWARE -> structureAwareDocumentChunker.chunk(text);
+        };
     }
 }

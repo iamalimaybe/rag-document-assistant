@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.document.config;
 
 public enum DocumentChunkingStrategy {
-    DETERMINISTIC
+    DETERMINISTIC,
+    STRUCTURE_AWARE
 }
