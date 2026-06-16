@@ -47,6 +47,22 @@ For an insufficient-context answer, the system can still return retrieved chunks
 
 That distinction matters because retrieval may find the closest available context even when the answer is not actually present in the document.
 
+## UI preview
+
+The project includes a thin React UI that makes the RAG workflow easier to inspect visually without hiding the backend behavior.
+
+### Document upload and selection
+
+![Document upload and selection](docs/images/rag-ui-document-upload.png)
+
+### Answer with citations and retrieved chunks
+
+![Answer with citations and retrieved chunks](docs/images/rag-ui-answer-with-citations.png)
+
+### QA run detail and audit view
+
+![QA run detail and audit view](docs/images/rag-ui-qa-run-detail.png)
+
 ## Tech stack
 
 Backend:
@@ -73,7 +89,12 @@ Infrastructure:
 * PostgreSQL with pgvector
 * GitHub Actions backend CI
 
-Optional frontend folder exists, but a frontend is not implemented yet.
+Frontend:
+
+* React
+* Vite
+* TypeScript
+* thin UI for upload, embedding, asking questions, citations, retrieved chunks, QA history, and QA run detail
 
 ## Local models
 
@@ -218,6 +239,24 @@ The backend runs on:
 ```text
 http://localhost:8080
 ```
+
+### 4. Run the frontend
+
+From the frontend folder:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on:
+
+```text
+http://localhost:5173
+```
+
+The Vite dev server proxies `/api` requests to the Spring Boot backend.
 
 ## Configuration
 
@@ -483,7 +522,6 @@ This project intentionally keeps the current version focused.
 
 Not implemented yet:
 
-* frontend UI
 * OCR
 * semantic chunking
 * model-aware tokenizer
@@ -496,8 +534,7 @@ Not implemented yet:
 
 Possible next improvements:
 
-* add a thin React UI for upload, embedding, asking questions, citations, retrieved chunks, and debug panels
-* add README screenshots after UI or Swagger examples are ready
+* improve the UI with better loading states, error display, and optional chunk inspection filters
 * add a model-aware token estimator
 * add semantic chunking later if it gives measurable retrieval value beyond deterministic and structure-aware chunking
 * review whether full extracted text should be retained once chunk snapshots, retrieved evidence, and UI/debug tooling are mature
