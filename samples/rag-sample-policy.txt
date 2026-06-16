@@ -1,0 +1,11 @@
+RAG System Policy
+
+RAG systems should answer questions using retrieved document context.
+
+Answers must cite the document chunks that directly support the answer.
+
+If the provided document context does not contain the answer, the assistant should say that it does not have enough information.
+
+The system should keep retrieved chunks separate from citations. Retrieved chunks are candidate context. Citations are the chunks actually used to support the answer.
+
+The system should store question answer runs for audit and review.

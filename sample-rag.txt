@@ -1,9 +1,0 @@
-﻿RAG systems should answer using retrieved document context and cite sources.
-
-This assistant should not guess when the answer is missing from the uploaded document.
-
-The backend stores uploaded documents, extracts text, splits text into chunks, and later will generate embeddings for semantic search.
-
-Chunking matters because the system should retrieve only the relevant parts of a document instead of sending the whole file to the model.
-
-This is useful for contracts, policies, reports, manuals, and support documentation.
