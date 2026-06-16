@@ -15,6 +15,10 @@ public class PgVectorFormatter implements VectorFormatter {
             throw new IllegalArgumentException("Embedding vector cannot be empty");
         }
 
+        if (embedding.stream().anyMatch(value -> value == null)) {
+            throw new IllegalArgumentException("Embedding vector cannot contain null values");
+        }
+
         return embedding.stream()
                 .map(String::valueOf)
                 .collect(Collectors.joining(",", "[", "]"));
