@@ -102,7 +102,7 @@ upload document
   -> extract text
   -> normalize text
   -> store document metadata
-  -> store temporary extracted text
+  -> store extracted text for v1 debugging and audit visibility
   -> chunk text
   -> embed chunks
   -> store vectors in pgvector
@@ -376,7 +376,7 @@ Possible next improvements:
 * add a conservative configurable normalizer
 * add a model-aware token estimator
 * add semantic chunking as an alternative chunker
-* reduce or remove temporary `documents.extracted_text` duplication once audit snapshots are mature
+* review whether full extracted text should be retained once chunk snapshots, retrieved evidence, and UI/debug tooling are mature
 * integrate QA behavior evaluation with the LLM Evaluation Registry
 
 ## Portfolio positioning
