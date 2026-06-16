@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.document.api;
 
+import com.aliniaz.ragdocumentassistant.document.api.response.DocumentChunkResponse;
 import com.aliniaz.ragdocumentassistant.document.api.response.DocumentResponse;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentService;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,10 @@ public class DocumentController {
     @GetMapping("/{id}")
     public DocumentResponse findById(@PathVariable Long id) {
         return documentService.findById(id);
+    }
+
+    @GetMapping("/{id}/chunks")
+    public List<DocumentChunkResponse> findChunksByDocumentId(@PathVariable Long id) {
+        return documentService.findChunksByDocumentId(id);
     }
 }

@@ -1,0 +1,2 @@
+ALTER TABLE document_chunks
+DROP CONSTRAINT IF EXISTS uq_document_chunks_document_content_hash;

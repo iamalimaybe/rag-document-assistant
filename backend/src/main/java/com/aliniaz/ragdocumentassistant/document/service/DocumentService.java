@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.document.service;
 
+import com.aliniaz.ragdocumentassistant.document.api.response.DocumentChunkResponse;
 import com.aliniaz.ragdocumentassistant.document.api.response.DocumentResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,4 +13,6 @@ public interface DocumentService {
     List<DocumentResponse> findAll();
 
     DocumentResponse findById(Long id);
+
+    List<DocumentChunkResponse> findChunksByDocumentId(Long documentId);
 }

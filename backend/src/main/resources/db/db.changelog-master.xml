@@ -91,4 +91,19 @@
                  stripComments="true"/>
     </changeSet>
 
+    <changeSet id="008-drop-document-chunk-content-hash-unique-constraint" author="ali">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(*)
+                FROM information_schema.table_constraints
+                WHERE table_name = 'document_chunks'
+                  AND constraint_name = 'uq_document_chunks_document_content_hash'
+            </sqlCheck>
+        </preConditions>
+        <sqlFile path="changelog/008-drop-document-chunk-content-hash-unique-constraint.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+    </changeSet>
+
 </databaseChangeLog>
