@@ -46,6 +46,7 @@ public class DocumentTextExtractorImpl implements DocumentTextExtractor {
         }
 
         return text
+                .replace("\uFEFF", "")
                 .replace("\r\n", "\n")
                 .replace('\r', '\n')
                 .trim();

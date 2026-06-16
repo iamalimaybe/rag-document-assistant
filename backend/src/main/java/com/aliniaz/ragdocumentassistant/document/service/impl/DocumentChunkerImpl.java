@@ -61,6 +61,7 @@ public class DocumentChunkerImpl implements DocumentChunker {
         }
 
         return text
+                .replace("\uFEFF", "")
                 .replace("\r\n", "\n")
                 .replace('\r', '\n')
                 .replaceAll("[ \\t]+", " ")
