@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.document.service.impl;
 
+import com.aliniaz.ragdocumentassistant.document.config.ChunkingProperties;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunkData;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunker;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentTextNormalizer;
@@ -17,11 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentChunkerImpl implements DocumentChunker {
 
-    private static final int CHUNK_SIZE_CHARS = 1200;
-    private static final int CHUNK_OVERLAP_CHARS = 200;
-    private static final int APPROX_CHARS_PER_TOKEN = 4;
-
     private final DocumentTextNormalizer documentTextNormalizer;
+    private final ChunkingProperties chunkingProperties;
 
     @Override
     public List<DocumentChunkData> chunk(String text) {
@@ -36,7 +34,7 @@ public class DocumentChunkerImpl implements DocumentChunker {
         int chunkIndex = 0;
 
         while (start < normalized.length()) {
-            int end = Math.min(start + CHUNK_SIZE_CHARS, normalized.length());
+            int end = Math.min(start + chunkingProperties.chunkSizeChars(), normalized.length());
             String chunkContent = normalized.substring(start, end).trim();
 
             if (!chunkContent.isBlank()) {
@@ -54,14 +52,17 @@ public class DocumentChunkerImpl implements DocumentChunker {
                 break;
             }
 
-            start = Math.max(0, end - CHUNK_OVERLAP_CHARS);
+            start = Math.max(0, end - chunkingProperties.chunkOverlapChars());
         }
 
         return chunks;
     }
 
     private Integer estimateTokens(String content) {
-        return Math.max(1, (int) Math.ceil((double) content.length() / APPROX_CHARS_PER_TOKEN));
+        return Math.max(
+                1,
+                (int) Math.ceil((double) content.length() / chunkingProperties.approxCharsPerToken())
+        );
     }
 
     private String sha256(String content) {

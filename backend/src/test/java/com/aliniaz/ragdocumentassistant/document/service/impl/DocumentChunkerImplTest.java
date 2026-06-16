@@ -1,5 +1,6 @@
 package com.aliniaz.ragdocumentassistant.document.service.impl;
 
+import com.aliniaz.ragdocumentassistant.document.config.ChunkingProperties;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunkData;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +11,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class DocumentChunkerImplTest {
 
     private final DocumentChunkerImpl chunker = new DocumentChunkerImpl(
-            text -> text == null ? "" : text.trim()
+            text -> text == null ? "" : text.trim(),
+            new ChunkingProperties(1200, 200, 4)
     );
 
     @Test
@@ -68,7 +70,7 @@ class DocumentChunkerImplTest {
     }
 
     @Test
-    void chunkOverlapsConsecutiveChunksByTwoHundredCharacters() {
+    void chunkOverlapsConsecutiveChunksByConfiguredOverlap() {
         String text = createDeterministicText(1500);
 
         List<DocumentChunkData> chunks = chunker.chunk(text);
@@ -88,6 +90,36 @@ class DocumentChunkerImplTest {
         assertEquals(2, chunks.size());
         assertEquals(chunks.get(0).content(), chunks.get(1).content());
         assertNotEquals(chunks.get(0).contentHash(), chunks.get(1).contentHash());
+    }
+
+    @Test
+    void chunkUsesConfiguredSizeOverlapAndTokenEstimate() {
+        DocumentChunkerImpl configuredChunker = new DocumentChunkerImpl(
+                text -> text == null ? "" : text.trim(),
+                new ChunkingProperties(10, 2, 5)
+        );
+
+        List<DocumentChunkData> chunks = configuredChunker.chunk("abcdefghijklmnopqrst");
+
+        assertEquals(3, chunks.size());
+
+        assertEquals("abcdefghij", chunks.get(0).content());
+        assertEquals("ijklmnopqr", chunks.get(1).content());
+        assertEquals("qrst", chunks.get(2).content());
+
+        assertEquals(2, chunks.get(0).tokenEstimate());
+        assertEquals(2, chunks.get(1).tokenEstimate());
+        assertEquals(1, chunks.get(2).tokenEstimate());
+    }
+
+    @Test
+    void chunkingPropertiesRejectOverlapEqualToChunkSize() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> new ChunkingProperties(10, 10, 4)
+        );
+
+        assertEquals("chunkOverlapChars must be smaller than chunkSizeChars", exception.getMessage());
     }
 
     private String createDeterministicText(int length) {
