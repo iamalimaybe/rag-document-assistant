@@ -2,6 +2,8 @@ package com.aliniaz.ragdocumentassistant.document.service.impl;
 
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunkData;
 import com.aliniaz.ragdocumentassistant.document.service.DocumentChunker;
+import com.aliniaz.ragdocumentassistant.document.service.DocumentTextNormalizer;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -12,15 +14,18 @@ import java.util.HexFormat;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DocumentChunkerImpl implements DocumentChunker {
 
     private static final int CHUNK_SIZE_CHARS = 1200;
     private static final int CHUNK_OVERLAP_CHARS = 200;
     private static final int APPROX_CHARS_PER_TOKEN = 4;
 
+    private final DocumentTextNormalizer documentTextNormalizer;
+
     @Override
     public List<DocumentChunkData> chunk(String text) {
-        String normalized = normalize(text);
+        String normalized = documentTextNormalizer.normalize(text);
 
         if (normalized.isBlank()) {
             return List.of();
@@ -53,20 +58,6 @@ public class DocumentChunkerImpl implements DocumentChunker {
         }
 
         return chunks;
-    }
-
-    private String normalize(String text) {
-        if (text == null) {
-            return "";
-        }
-
-        return text
-                .replace("\uFEFF", "")
-                .replace("\r\n", "\n")
-                .replace('\r', '\n')
-                .replaceAll("[ \\t]+", " ")
-                .replaceAll("\\n{3,}", "\n\n")
-                .trim();
     }
 
     private Integer estimateTokens(String content) {
