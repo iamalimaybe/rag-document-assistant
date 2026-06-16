@@ -8,9 +8,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DocumentChunkerImplTest {
+class DeterministicDocumentChunkerTest {
 
-    private final DocumentChunkerImpl chunker = new DocumentChunkerImpl(
+    private final DeterministicDocumentChunker chunker = new DeterministicDocumentChunker(
             text -> text == null ? "" : text.trim(),
             new ChunkingProperties(1200, 200),
             content -> Math.max(1, (int) Math.ceil((double) content.length() / 4))
@@ -95,7 +95,7 @@ class DocumentChunkerImplTest {
 
     @Test
     void chunkUsesConfiguredSizeOverlapAndTokenEstimate() {
-        DocumentChunkerImpl configuredChunker = new DocumentChunkerImpl(
+        DeterministicDocumentChunker configuredChunker = new DeterministicDocumentChunker(
                 text -> text == null ? "" : text.trim(),
                 new ChunkingProperties(10, 2),
                 content -> Math.max(1, (int) Math.ceil((double) content.length() / 5))

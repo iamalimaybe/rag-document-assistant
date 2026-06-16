@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentChunkerImpl implements DocumentChunker {
+public class DeterministicDocumentChunker implements DocumentChunker {
 
     private final DocumentTextNormalizer documentTextNormalizer;
     private final ChunkingProperties chunkingProperties;
